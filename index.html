@@ -39,18 +39,46 @@
   .cspark:active{transform:scale(.92);}
   #cmid{position:absolute; top:50%; left:0; right:0; transform:translateY(-50%); display:flex; justify-content:center; align-items:center; z-index:5; pointer-events:none;}
   .cmidActions{display:flex; align-items:center; gap:8px; max-width:0; overflow:hidden; opacity:0; margin-right:0; transition:max-width .22s ease, opacity .18s ease, margin-right .22s ease; pointer-events:none;}
-  .cmidActions.open{max-width:320px; opacity:1; margin-right:8px; pointer-events:auto;}
+  .cmidActions.open{max-width:400px; opacity:1; margin-right:8px; pointer-events:auto;}
   .cmidActions .btn{pointer-events:auto; box-shadow:0 2px 12px rgba(0,0,0,.5); white-space:nowrap;}
   .cmidToggle{pointer-events:auto; width:32px; height:32px; min-width:32px; border-radius:50%; border:1px solid var(--border); background:var(--panel2); color:var(--muted); font-size:17px; line-height:1; cursor:pointer; opacity:.4; box-shadow:0 2px 10px rgba(0,0,0,.45); transition:opacity .15s, background .15s, color .15s, border-color .15s;}
   .cmidToggle:active{opacity:1;}
   .cmidToggle.active{opacity:1; background:var(--accent); color:#1a1a0a; border-color:var(--accent);}
   #cfirstMsg{position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:var(--accent); color:#1a1a0a; font-weight:900; font-size:min(3.5vh,6vw); padding:14px 30px; border-radius:30px; z-index:6; display:none; box-shadow:0 4px 24px rgba(0,0,0,.6);}
-  .cname{position:absolute; top:max(8px, env(safe-area-inset-top)); left:12px; font-size:min(1.8vh,3.2vw); color:var(--muted); font-weight:700; letter-spacing:1px;}
+  .cname{position:absolute; top:max(8px, env(safe-area-inset-top)); left:12px; font-size:min(1.8vh,3.2vw); color:var(--muted); font-weight:700; letter-spacing:1px; z-index:4; transition:color .2s, background .2s;}
+  /* ฝั่งที่เริ่มก่อน — ไฮไลต์ค้างไว้จนกว่าจะเริ่มเกมใหม่ */
+  .cname{cursor:pointer;}
+  .cname.first{color:var(--accent);}
+  /* จานสีพื้นหลังของแต่ละฝั่ง */
+  .cpick{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); display:none; z-index:8;
+    background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:12px 14px;
+    box-shadow:0 8px 30px rgba(0,0,0,.65); gap:10px; flex-wrap:wrap; justify-content:center; max-width:88%;}
+  .cpick.show{display:flex;}
+  .csw{width:min(5.6vh,8.5vw); height:min(5.6vh,8.5vw); border-radius:50%; border:2px solid var(--border);
+    cursor:pointer; padding:0; flex-shrink:0;}
+  .csw.on{border-color:#fff; box-shadow:0 0 0 3px rgba(255,255,255,.3);}
+  .csw:active{transform:scale(.9);}
+  /* ตัวจับเวลา — วางชิดเส้นแบ่งกลางทั้งสองฝั่ง อ่านถูกด้านทั้งคู่ */
+  .ctimer{position:absolute; top:max(8px, env(safe-area-inset-top)); right:12px; z-index:4;
+    font-size:min(2.1vh,3.8vw); font-weight:800; color:var(--muted); font-variant-numeric:tabular-nums;
+    background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:3px 12px;
+    cursor:pointer; letter-spacing:.5px; transition:color .2s, background .2s, border-color .2s;}
+  .ctimer.run{color:var(--text); border-color:#3d4b66;}
+  .ctimer.done{color:#fff; background:var(--danger); border-color:var(--danger); animation:tflash .8s steps(1,end) infinite;}
+  @keyframes tflash{0%,49%{opacity:1;} 50%,100%{opacity:.2;}}
+  .tpick{position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); display:none; z-index:9;
+    background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:14px;
+    box-shadow:0 8px 30px rgba(0,0,0,.7); gap:8px; flex-wrap:wrap; justify-content:center; max-width:90vw; width:290px;}
+  .tpick.show{display:flex;}
+  .tpick .thead{width:100%; text-align:center; font-size:12px; color:var(--muted); font-weight:700; letter-spacing:1px;}
+  .tpick .btn{flex:1 1 28%;}
 </style>
 </head>
 <body>
   <div class="cpanel" id="cp2">
-    <span class="cname">PLAYER 2</span>
+    <span class="cname" id="cname2" onclick="togglePick(2)">PLAYER 2</span>
+    <div class="cpick" id="cpick2"></div>
+    <button class="ctimer" id="ctimer2" onclick="toggleTimer()">30:00</button>
     <div class="cinner">
       <div class="crow">
         <button class="csmall" onclick="resetHP(2)">↻ RESET LP</button>
@@ -75,7 +103,9 @@
     </div>
   </div>
   <div class="cpanel" id="cp1">
-    <span class="cname">PLAYER 1</span>
+    <span class="cname" id="cname1" onclick="togglePick(1)">PLAYER 1</span>
+    <div class="cpick" id="cpick1"></div>
+    <button class="ctimer" id="ctimer1" onclick="toggleTimer()">30:00</button>
     <div class="cinner">
       <div class="crow">
         <button class="csmall" onclick="resetHP(1)">↻ RESET LP</button>
@@ -103,20 +133,106 @@
   <div id="cmid">
     <div class="cmidActions" id="cmidActions">
       <button class="btn primary" id="cfirstBtn" onclick="pickFirst(); closeMid();" title="สุ่มผู้เริ่มก่อน">🎲 FIRST!</button>
+      <button class="btn" onclick="openTPick(); closeMid();" title="ตั้งเวลา">⏱</button>
       <button class="btn" onclick="toggleFS(); closeMid();" title="เต็มจอ">⛶</button>
       <button class="btn" onclick="resetGame(); closeMid();" title="เริ่มใหม่">↻</button>
     </div>
     <button class="cmidToggle" id="cmidToggle" onclick="toggleMid()" title="เมนู">⋮</button>
   </div>
   <div id="cfirstMsg"></div>
+  <div class="tpick" id="tpick">
+    <div class="thead">ตั้งเวลาแข่ง (นาที)</div>
+    <button class="btn" onclick="setTimer(20)">20</button>
+    <button class="btn" onclick="setTimer(30)">30</button>
+    <button class="btn" onclick="setTimer(40)">40</button>
+    <button class="btn" onclick="setTimer(50)">50</button>
+    <button class="btn" onclick="setTimer(60)">60</button>
+    <button class="btn" onclick="setTimer(90)">90</button>
+    <button class="btn danger" style="flex:1 1 100%" onclick="resetTimer()">↻ รีเซ็ตเวลา</button>
+  </div>
 
 <script>
 const LS_CTR = 'eidolon_counter_v2';
-let ctr = {hp1:30, hp2:30, max1:30, max2:30, ae1:[1,1,1], ae2:[1,1,1]};
+let ctr = {hp1:30, hp2:30, max1:30, max2:30, ae1:[1,1,1], ae2:[1,1,1], first:0, col1:'', col2:'',
+           tdur:30*60, tleft:30*60, trun:0, tend:0};
 try{ const c = JSON.parse(localStorage.getItem(LS_CTR));
   if(c && typeof c.hp1==='number'){ ctr = c;
     if(!Array.isArray(ctr.ae1)) ctr.ae1 = [1,1,1];
-    if(!Array.isArray(ctr.ae2)) ctr.ae2 = [1,1,1]; } }catch(e){}
+    if(!Array.isArray(ctr.ae2)) ctr.ae2 = [1,1,1];
+    if(typeof ctr.first !== 'number') ctr.first = 0;
+    if(typeof ctr.col1 !== 'string') ctr.col1 = '';
+    if(typeof ctr.col2 !== 'string') ctr.col2 = '';
+    if(typeof ctr.tdur !== 'number') ctr.tdur = 30*60;
+    if(typeof ctr.tleft !== 'number') ctr.tleft = ctr.tdur;
+    if(typeof ctr.trun !== 'number') ctr.trun = 0;
+    if(typeof ctr.tend !== 'number') ctr.tend = 0; } }catch(e){}
+
+/* ---------- ตัวจับเวลานับถอยหลัง ----------
+   ใช้เวลาสิ้นสุดจริง (tend) ตอนเดินอยู่ เวลาจะได้ไม่เพี้ยนแม้ปิดจอหรือรีโหลด */
+function timerLeft(){
+  if(ctr.trun && ctr.tend) return Math.max(0, Math.round((ctr.tend - Date.now())/1000));
+  return Math.max(0, ctr.tleft);
+}
+function fmtTime(s){
+  const m = Math.floor(s/60), r = s%60;
+  return (m<10?'0':'')+m+':'+(r<10?'0':'')+r;
+}
+function drawTimer(){
+  const s = timerLeft(), txt = fmtTime(s);
+  for(const p of [1,2]){
+    const el = document.getElementById('ctimer'+p);
+    if(!el) continue;
+    el.textContent = txt;
+    el.className = 'ctimer' + (s === 0 ? ' done' : (ctr.trun ? ' run' : ''));
+  }
+  if(ctr.trun && s === 0){ ctr.trun = 0; ctr.tend = 0; ctr.tleft = 0; saveCtr(); }
+}
+function toggleTimer(){
+  const s = timerLeft();
+  if(s === 0){ ctr.tleft = ctr.tdur; ctr.trun = 0; ctr.tend = 0; }        // หมดแล้ว กดอีกทีเพื่อตั้งใหม่
+  else if(ctr.trun){ ctr.tleft = s; ctr.trun = 0; ctr.tend = 0; }          // หยุดชั่วคราว
+  else { ctr.trun = 1; ctr.tend = Date.now() + s*1000; }                   // เริ่มเดิน
+  saveCtr(); drawTimer();
+}
+function setTimer(min){
+  ctr.tdur = min*60; ctr.tleft = ctr.tdur; ctr.trun = 0; ctr.tend = 0;
+  saveCtr(); drawTimer(); closeTPick();
+}
+function resetTimer(){
+  ctr.tleft = ctr.tdur; ctr.trun = 0; ctr.tend = 0;
+  saveCtr(); drawTimer(); closeTPick();
+}
+function openTPick(){ document.getElementById('tpick').classList.add('show'); }
+function closeTPick(){ document.getElementById('tpick').classList.remove('show'); }
+
+/* สีพื้นหลังของแต่ละฝั่ง — ใช้โทนเข้มไล่เฉด ตัวเลข HP จะได้ยังอ่านชัด */
+const SIDE_COLORS = [
+  {k:'',       n:'ปกติ',   hex:'#39445c'},
+  {k:'ฟ้า',     n:'ฟ้า',    hex:'#38bdf8'},
+  {k:'เขียว',   n:'เขียว',  hex:'#22c55e'},
+  {k:'ม่วง',    n:'ม่วง',   hex:'#a78bfa'},
+  {k:'แดง',     n:'แดง',    hex:'#ef4444'},
+  {k:'เหลือง',  n:'เหลือง', hex:'#facc15'},
+  {k:'ดำ',      n:'ดำ',     hex:'#64748b'},
+  {k:'ไร้สี',   n:'ไร้สี',  hex:'#cbd5e1'},
+];
+const sideDef = k => SIDE_COLORS.find(c => c.k === k) || SIDE_COLORS[0];
+const hexRgb = hex => [1,3,5].map(i => parseInt(hex.substr(i,2),16)).join(',');
+function buildPickers(){
+  for(const p of [1,2]){
+    document.getElementById('cpick'+p).innerHTML = SIDE_COLORS.map(c =>
+      `<button class="csw" id="csw${p}_${c.k}" style="background:${c.hex}" title="${c.n}" onclick="setSideColor(${p},'${c.k}')"></button>`
+    ).join('');
+  }
+}
+function setSideColor(p,k){ ctr['col'+p] = k; saveCtr(); drawCtr(); closePick(); }
+function togglePick(p){
+  const box = document.getElementById('cpick'+p);
+  const open = !box.classList.contains('show');
+  closePick();
+  if(open) box.classList.add('show');
+}
+function closePick(){ for(const p of [1,2]) document.getElementById('cpick'+p).classList.remove('show'); }
 function saveCtr(){ try{ localStorage.setItem(LS_CTR, JSON.stringify(ctr)); }catch(e){} }
 function drawCtr(){
   for(const p of [1,2]){
@@ -126,6 +242,24 @@ function drawCtr(){
     document.getElementById('cmax'+p).textContent = ctr['max'+p];
     for(let i=0;i<3;i++){
       document.getElementById('cae'+p+'_'+i).className = 'cspark' + (ctr['ae'+p][i] ? ' lit' : '');
+    }
+    const isFirst = ctr.first === p;
+    const nm = document.getElementById('cname'+p);
+    nm.textContent = 'PLAYER ' + p + (isFirst ? ' • เริ่มก่อน' : '');
+    nm.classList.toggle('first', isFirst);
+    // ฝั่งที่เลือกสีเหลืองไว้ ไฮไลต์สีเหลืองจะกลืน เปลี่ยนเป็นขาวแทน
+    nm.style.color = (isFirst && ctr['col'+p] === 'เหลือง') ? '#fff' : '';
+    // พื้นหลังฝั่งนี้
+    const panel = document.getElementById('cp'+p), key = ctr['col'+p];
+    if(!key){ panel.style.backgroundImage = ''; }
+    else{
+      // ฝั่ง 2 ถูกหมุน 180 องศาอยู่ ใช้ 0deg เหมือนกันทั้งคู่ สีจึงเริ่มจากขอบนอกของจอทั้งสองฝั่ง
+      const rgb = hexRgb(sideDef(key).hex);
+      panel.style.backgroundImage = `linear-gradient(0deg, rgba(${rgb},.34), rgba(${rgb},.06) 58%, #0a0d13)`;
+    }
+    for(const c of SIDE_COLORS){
+      const sw = document.getElementById('csw'+p+'_'+c.k);
+      if(sw) sw.className = 'csw' + (c.k === key ? ' on' : '');
     }
   }
 }
@@ -140,7 +274,8 @@ function resetHP(p){ ctr['hp'+p] = ctr['max'+p]; saveCtr(); drawCtr(); }
 function resetAE(p){ ctr['ae'+p] = [1,1,1]; saveCtr(); drawCtr(); }
 function resetGame(){
   if(!confirm('เริ่มเกมใหม่? (HP กลับเป็นค่า Max และอีเธอร์เต็ม)')) return;
-  ctr.hp1 = ctr.max1; ctr.hp2 = ctr.max2; ctr.ae1 = [1,1,1]; ctr.ae2 = [1,1,1];
+  ctr.hp1 = ctr.max1; ctr.hp2 = ctr.max2; ctr.ae1 = [1,1,1]; ctr.ae2 = [1,1,1]; ctr.first = 0;
+  ctr.tleft = ctr.tdur; ctr.trun = 0; ctr.tend = 0;
   const fb = document.getElementById('cfirstBtn'); if(fb) fb.classList.add('primary');
   saveCtr(); drawCtr();
 }
@@ -164,6 +299,10 @@ function closeMid(){
 document.addEventListener('click', (e) => {
   const cmid = document.getElementById('cmid');
   if(!cmid.contains(e.target)) closeMid();
+  const inPick = e.target.closest && e.target.closest('.cpick, .cname');
+  if(!inPick) closePick();
+  const inT = e.target.closest && e.target.closest('.tpick, .cmidActions, .cmidToggle');
+  if(!inT) closeTPick();
 });
 let firstTimer;
 function pickFirst(){
@@ -178,9 +317,11 @@ function pickFirst(){
     msg.style.transform = 'translate(-50%,-50%)' + (n % 2 ? '' : ' rotate(180deg)');
     if(n > 14 + Math.floor(Math.random()*2)){
       clearInterval(firstTimer);
-      const winner = (n % 2) ? 1 : 2;
+      const winner = (n % 2) ? 1 : 2, loser = winner === 1 ? 2 : 1;
       msg.textContent = '🎲 ' + msg.textContent + ' เริ่มก่อน!';
-      ctr['ae'+winner] = [1,0,0];
+      ctr['ae'+winner] = [1,0,0];   // ผู้เริ่มก่อน = 1 อีเธอร์
+      ctr['ae'+loser]  = [1,1,1];   // อีกฝ่าย = 3 อีเธอร์
+      ctr.first = winner;
       saveCtr(); drawCtr();
       setTimeout(() => msg.style.display='none', 2600);
     }
@@ -192,7 +333,10 @@ if('wakeLock' in navigator){
   lock();
   document.addEventListener('visibilitychange', () => { if(!document.hidden) lock(); });
 }
+buildPickers();
 drawCtr();
+drawTimer();
+setInterval(drawTimer, 250);
 </script>
 </body>
 </html>
