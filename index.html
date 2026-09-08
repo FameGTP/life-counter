@@ -3,12 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Life counter</title>
+<title>EDL Counter</title>
 <meta name="theme-color" content="#0a0d13">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Life counter">
+<meta name="apple-mobile-web-app-title" content="EDL Counter">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="icon" href="./icon-192.png">
 <style>
   :root{--panel:#171c26; --panel2:#1e2534; --border:#2a3347; --text:#e7ecf5; --muted:#8b96ab; --accent:#f0b429; --danger:#ef4444; --success:#22c55e;}
   *{box-sizing:border-box; margin:0; padding:0;}
@@ -326,6 +329,10 @@ function pickFirst(){
       setTimeout(() => msg.style.display='none', 2600);
     }
   }, 120);
+}
+/* ติดตั้งเป็นแอปและใช้งานออฟไลน์ (ต้องเปิดผ่าน https เช่น GitHub Pages) */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 }
 /* กันจอดับระหว่างเล่น (ถ้าเบราว์เซอร์รองรับ) */
 if('wakeLock' in navigator){
