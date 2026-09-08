@@ -4,7 +4,11 @@
   "description": "ตัวนับ Life Point / Aether และจับเวลาสำหรับ Eidolon TCG",
   "start_url": "./",
   "scope": "./",
-  "display": "standalone",
+  "display": "fullscreen",
+  "display_override": [
+    "fullscreen",
+    "standalone"
+  ],
   "orientation": "portrait",
   "background_color": "#0a0d13",
   "theme_color": "#0a0d13",
