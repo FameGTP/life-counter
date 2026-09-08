@@ -1,6 +1,6 @@
 /* Service worker — เก็บไฟล์ไว้ในเครื่องเพื่อให้เปิดใช้ได้ตอนไม่มีเน็ต
    เปลี่ยนเลข VERSION ทุกครั้งที่อัปเดตไฟล์ เพื่อให้เครื่องผู้ใช้โหลดของใหม่ */
-const VERSION = 'edl-counter-v3';
+const VERSION = 'edl-counter-v4';
 const ASSETS = [
   './',
   './index.html',

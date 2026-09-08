@@ -137,7 +137,7 @@
     <div class="cmidActions" id="cmidActions">
       <button class="btn primary" id="cfirstBtn" onclick="pickFirst(); closeMid();" title="สุ่มผู้เริ่มก่อน">🎲 FIRST!</button>
       <button class="btn" onclick="openTPick(); closeMid();" title="ตั้งเวลา">⏱</button>
-      <button class="btn" onclick="toggleFS(); closeMid();" title="เต็มจอ">⛶</button>
+      <button class="btn" id="cfsBtn" onclick="toggleFS(); closeMid();" title="เต็มจอ">⛶</button>
       <button class="btn" onclick="resetGame(); closeMid();" title="เริ่มใหม่">↻</button>
     </div>
     <button class="cmidToggle" id="cmidToggle" onclick="toggleMid()" title="เมนู">⋮</button>
@@ -329,6 +329,18 @@ function pickFirst(){
       setTimeout(() => msg.style.display='none', 2600);
     }
   }, 120);
+}
+/* เปิดจากไอคอนแอปจะเต็มจออยู่แล้ว ปุ่ม ⛶ จึงไม่จำเป็นและทำให้ Android ขึ้นข้อความค้าง — ซ่อนทิ้ง */
+function isInstalledApp(){
+  try{
+    return window.matchMedia('(display-mode: standalone)').matches
+        || window.matchMedia('(display-mode: fullscreen)').matches
+        || window.navigator.standalone === true;
+  }catch(e){ return false; }
+}
+if(isInstalledApp()){
+  const fsBtn = document.getElementById('cfsBtn');
+  if(fsBtn) fsBtn.style.display = 'none';
 }
 /* ติดตั้งเป็นแอปและใช้งานออฟไลน์ (ต้องเปิดผ่าน https เช่น GitHub Pages) */
 if('serviceWorker' in navigator){
